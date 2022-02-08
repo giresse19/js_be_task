@@ -7,6 +7,9 @@ axios.defaults.adapter = httpAdapter;
 
 const getResponse = (code: number, data: any) => {
     const random = Math.floor(Math.random() * 10) + 1;
+
+    console.log("Random Number check************", random);
+
     if (random > 8) {
         return [500, 'There is something wrong with the service'];
     }

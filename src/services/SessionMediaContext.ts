@@ -51,10 +51,10 @@ export default class SessionMediaContext {
                 return this.callback(this.res, null, data);
             }
         } catch (err: any) {
-            console.error("API error: ", err);
+            console.error("API error message: ", err.response.data);
             this.callback(this.res, {
-                status: 500,
-                message: 'Server Error'
+                status: err.response.statusCode,
+                message: err.response.data
             }, noResource())
         }
     }
