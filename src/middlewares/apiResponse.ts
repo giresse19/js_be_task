@@ -11,6 +11,6 @@ export const apiResponse = (res:express.Response, err:Error, data:SessionRespons
 
 export const noResource = ():SessionResponse => {
     return {
-        id: '', image: {'document-front': [], "document-back": []}, status: ''
+        id: '', media: {'document-front': [], "document-back": []}, status: ''
     }
 }

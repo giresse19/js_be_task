@@ -9,7 +9,7 @@ export interface ContextMediaMap {
 }
 
 export interface SessionResponse extends Session {
-    image: ContextMediaMap;
+    media: ContextMediaMap;
 }
 
 export interface MediaDetails {

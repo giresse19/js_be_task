@@ -1,44 +1,9 @@
 import axios from 'axios';
 import httpAdapter from 'axios/lib/adapters/http';
 import nock from 'nock';
-import {MediaContext, MediaDetails, Session} from "../interfaces/externalService";
-import {API, SESSION_UUID} from '../config';
+import {SESSION_UUID} from '../config';
 
 axios.defaults.adapter = httpAdapter;
-
-/**
- * @param sessionId : String - a uuid format session id.
- * @returns Session
- */
-export const getSessionDetails = async (sessionId: string): Promise<any> => {
-    console.log("session Details inside");
-    const url = `https://api.github.com/users/mapbox`
-
-    const response = await axios.get(url);
-    console.log("session Details", response);
-
-    // const sessionDetails = await API.get<Session>(`/sessions/${sessionId}`);
-// return  sessionDetails.data
-    return [];
-}
-
-/**
- * @param sessionId : String - a uuid format session id.
- * @returns MediaDetails
- */
-export const getMediaDetails = async (sessionId: string): Promise<MediaDetails[]> => {
-    const mediaDetails = await API.get<MediaDetails[]>(`/sessions/${sessionId}/media`);
-    return mediaDetails.data;
-}
-
-/**
- * @param sessionId : String - a uuid format session id.
- * @returns MediaContextDetails
- */
-export const getMediaContextDetails = async (sessionId: string): Promise<MediaContext[]> => {
-    const mediaContext = await API.get<MediaContext[]>(`media-context/${sessionId}`);
-    return mediaContext.data;
-}
 
 const getResponse = (code: number, data: any) => {
     const random = Math.floor(Math.random() * 10) + 1;

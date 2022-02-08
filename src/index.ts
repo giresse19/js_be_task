@@ -1,6 +1,7 @@
 import express from 'express'
 
 import './services/externalService';
+import SessionMediaContext from './services/SessionMediaContext'
 import {HOST, PORT} from "./config";
 import {apiResponse, noResource} from './middlewares/apiResponse';
 
@@ -11,7 +12,10 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
     next();
 });
 
-
+app.get('/api/sessions/:sessionId/media-context', (req: express.Request, res: express.Response) => {
+    const sessionMediaContext = new SessionMediaContext(res, req.params.sessionId, apiResponse)
+    return sessionMediaContext.sessionMediaContext();
+});
 
 app.use((req: express.Request, res: express.Response) => apiResponse(res, {
     status: 404,

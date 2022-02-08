@@ -125,10 +125,19 @@ This project is set up with NodeJS LTS version 14 in mind https://nodejs.org/dow
 default packaged NPM
 
 ### Installation
-1. Install the dependencies
+
+1. If you prefer docker installation and have docker installed, just run:
+
+```sh
+ docker build . -t api-service
+ docker run api-service
+```
+OR 
+Install the dependencies
    ```sh
-   npm install
+   npm install 
    ```
+
 2. Run the service
    ```sh
    npm start
