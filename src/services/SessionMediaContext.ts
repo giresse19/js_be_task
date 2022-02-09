@@ -37,7 +37,6 @@ export default class SessionMediaContext {
 
             const media = await SessionMediaContext.groupMediaByContextType(mediaDetails, mediaIdMap);
 
-            // Non-null assertion operator(!), to handle typescript possible undefined message.
             media['document-front'].sort((documentA, documentB) =>
                 mediaIdMap.get(documentB.id)!.probability - mediaIdMap.get(documentA.id)!.probability );
 
