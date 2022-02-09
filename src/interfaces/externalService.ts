@@ -22,12 +22,17 @@ export interface MediaContext {
     id: string;
     mediaId: string;
     context: string;
-    probability: Number;
+    probability: number;
 }
 
 export interface Error {
     status: number;
     message: string;
+}
+
+export interface ProbabilityContext {
+    context: string;
+    probability: number;
 }
 
 

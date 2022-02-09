@@ -2,6 +2,7 @@ import {
     ContextMediaMap,
     MediaContext,
     MediaDetails,
+    ProbabilityContext,
     SessionResponse
 } from "../interfaces/externalService";
 import {getMediaContextDetails, getMediaDetails, getSessionDetails} from "./apiRequestService";
@@ -26,32 +27,31 @@ export default class SessionMediaContext {
     public async sessionMediaContext() {
 
         try {
-            let {id, status} = await getSessionDetails(this.sessionId);
+            const {id} = await getSessionDetails(this.sessionId);
+            const mediaDetails = await getMediaDetails(id);
+            const mediaContextResponse = await getMediaContextDetails(id);
 
-            if (status === 'internal_manual_review') {
-                const mediaDetails = await getMediaDetails(id);
-                const mediaContextResponse = await getMediaContextDetails(id);
+            const mediaContextDetails = await SessionMediaContext.filterOutIrrelevantMediaAndAlignResponses(mediaContextResponse);
 
-                const mediaContextDetails = await SessionMediaContext
-                    .alignResponsesOfContextPropForMediaContextAndSessionMediaEndPoints(mediaContextResponse);
+            const mediaIdMap = await this.mapMediaIdWithContextAndProbability(mediaContextDetails);
 
-                const mediaIdMap = await this.mapMediaIdWithContextAndProbability(mediaContextDetails);
+            const media = await SessionMediaContext.groupMediaByContextType(mediaDetails, mediaIdMap);
 
-                const media = await SessionMediaContext.groupMediaByContextType(mediaDetails, mediaIdMap);
+            // Non-null assertion operator to handle typescript possible undefined message.
+            media['document-front'].sort((documentA, documentB) =>
+                mediaIdMap.get(documentB.id)!.probability - mediaIdMap.get(documentA.id)!.probability );
 
-                media['document-front'].sort((documentA, documentB) =>
-                    mediaIdMap[documentA.id].probability > mediaIdMap[documentB.id].probability ? -1 : 1);
+            media['document-back'].sort((documentA, documentB) =>
+                mediaIdMap.get(documentB.id)!.probability - mediaIdMap.get(documentA.id)!.probability );
 
-                media['document-back'].sort((documentA, documentB) =>
-                    mediaIdMap[documentA.id].probability > mediaIdMap[documentB.id].probability ? -1 : 1);
+            let status = 'uploaded';
 
-                status = 'uploaded'
-                let data: SessionResponse = {id, status, media};
+            let data: SessionResponse = {id, status, media};
 
-                return this.callback(this.res, null, data);
-            }
+            return this.callback(this.res, null, data);
         } catch (err: any) {
             console.error("API error message: ", err.response.data);
+
             this.callback(this.res, {
                 status: err.response.statusCode,
                 message: err.response.data
@@ -65,25 +65,28 @@ export default class SessionMediaContext {
      * @param mediaIdMap : Object - an object containing mediaIds(as key) mapped with context and probability as values.
      * @returns contextMediaMap, mediaDetails: object with context mapped to media.
      */
-    private static async groupMediaByContextType(mediaDetailArr: MediaDetails[], mediaIdMap: object) {
+    private static async groupMediaByContextType(mediaDetailArr: MediaDetails[], mediaIdMap: Map<string, ProbabilityContext>) {
         const mediaDetails = [...mediaDetailArr];
         const contextMediaMap: ContextMediaMap = {'document-front': [], 'document-back': []};
 
         for (let mediaDetail of mediaDetails) {
+            let mediaContextId = mediaIdMap.get(mediaDetail.id);
 
-            if (mediaDetail.id in mediaIdMap) {
-                if (mediaDetail.context === mediaIdMap[mediaDetail.id].context) {
-                    contextMediaMap[mediaDetail.context].push(mediaDetail)
+            if (!mediaIdMap.has(mediaDetail.id)) continue;
+            if (!mediaContextId) continue;
+
+            if (mediaDetail.context === mediaContextId.context) {
+                contextMediaMap[mediaDetail.context].push(mediaDetail);
+            } else {
+                if (mediaContextId.probability > PROBABILITY_EQUILIBRIUM) {
+                    mediaDetail.context = mediaContextId.context;
+                    contextMediaMap[mediaContextId.context].push(mediaDetail);
                 } else {
-                    if (mediaIdMap[mediaDetail.id].probability > PROBABILITY_EQUILIBRIUM) {
-                        mediaDetail.context = mediaIdMap[mediaDetail.id].context
-                        contextMediaMap[mediaIdMap[mediaDetail.id].context].push(mediaDetail)
-                    } else {
-                        contextMediaMap[mediaDetail.context].push(mediaDetail)
-                    }
+                    contextMediaMap[mediaDetail.context].push(mediaDetail);
                 }
             }
         }
+
         return contextMediaMap;
     }
 
@@ -93,44 +96,39 @@ export default class SessionMediaContext {
      * @returns mediaIdMap : an object containing mediaIds(as key) mapped with context and probability as values.
      */
     private async mapMediaIdWithContextAndProbability(mediaContextArr: MediaContext[]) {
-        const mediaContext: MediaContext[] = [...mediaContextArr];
-        const mediaIdMap: Object = {};
+        const mediaIdMap: Map<string, ProbabilityContext> = new Map();
 
-        mediaContext.forEach(mediaContextElement => {
-            mediaIdMap[mediaContextElement.mediaId] = {
+        mediaContextArr.forEach(mediaContextElement => {
+            mediaIdMap.set(mediaContextElement.mediaId, {
                 context: mediaContextElement.context,
                 probability: mediaContextElement.probability
-            }
+            })
         });
 
         return mediaIdMap;
     }
 
     /**
-     * @Desc: To align the context property of media context end-point response
-     * to that of session media end-point response.
+     * @Desc: To filter out irrelevant media and align the context property of media context end-point response
+     * to that of session media end-point responses.
      * @param mediaContextArr : Array - a response array from calling media context end-point.
      * @returns filtered array with context set to document-front and document-back.
      */
-    private static async alignResponsesOfContextPropForMediaContextAndSessionMediaEndPoints(mediaContextArr: MediaContext[]) {
-        const newMediaContextArr: MediaContext[] = [...mediaContextArr];
-        const filterMediaContextArr: MediaContext[] = await SessionMediaContext.removeIrrelevantMedia(newMediaContextArr);
+    private static async filterOutIrrelevantMediaAndAlignResponses(mediaContextArr: MediaContext[]) {
 
-        filterMediaContextArr
-            .forEach((filteredMediaContextElement) => {
-                if (filteredMediaContextElement.context === 'front') filteredMediaContextElement.context = 'document-front'
-                if (filteredMediaContextElement.context === 'back') filteredMediaContextElement.context = 'document-back'
-            })
-        return filterMediaContextArr;
-    }
+        return mediaContextArr
+            .filter(mediaContextElement => mediaContextElement.context !== 'none')
+            .map((filteredMediaContextElement) => {
 
-    /**
-     * @param mediaContextArr : Array - a response array from calling media context end-point.
-     * @returns filtered array containing relevant media.
-     */
-    private static async removeIrrelevantMedia(mediaContextArr: MediaContext[]) {
-        const newMediaContextArr = [...mediaContextArr];
-        return newMediaContextArr.filter((mediaContextElement) => mediaContextElement.context !== 'none')
+                if (filteredMediaContextElement.context === 'front') {
+                    filteredMediaContextElement.context = 'document-front'
+                }
+                if (filteredMediaContextElement.context === 'back') {
+                    filteredMediaContextElement.context = 'document-back'
+                }
+
+                return filteredMediaContextElement;
+            });
     }
 
 }
