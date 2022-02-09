@@ -65,10 +65,9 @@ export default class SessionMediaContext {
      * @returns contextMediaMap, mediaDetails: object with context mapped to media.
      */
     private static async groupMediaByContextType(mediaDetailArr: MediaDetails[], mediaIdMap: Map<string, ProbabilityContext>) {
-        const mediaDetails = [...mediaDetailArr];
         const contextMediaMap: ContextMediaMap = {'document-front': [], 'document-back': []};
 
-        for (let mediaDetail of mediaDetails) {
+        for (let mediaDetail of mediaDetailArr) {
             let mediaContextId = mediaIdMap.get(mediaDetail.id);
 
             if (!mediaIdMap.has(mediaDetail.id)) continue;
