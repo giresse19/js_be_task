@@ -6,7 +6,7 @@ import {
     SessionResponse
 } from "../interfaces/externalService";
 import {getMediaContextDetails, getMediaDetails, getSessionDetails} from "./apiRequestService";
-import express from "express";
+import * as express from "express";
 import {noResource} from "../middlewares/apiResponse";
 import {PROBABILITY_EQUILIBRIUM} from "../config";
 
