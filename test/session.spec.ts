@@ -10,17 +10,14 @@ describe('GET http://localhost:3000/api/sessions/:sessionId', () => {
 });
 
 describe('GET session with media in the correct context', () => {
-  test('should return session with media in the correct context', async () => {
+  it('should return session with media in the correct context', async () => {
     const response = await getRespondsData();
-
-    console.log('response data*****', response);
-
     expect(response.code).toEqual(200);
     expect(response.data).toMatchObject({
       id: "90d61876-b99a-443e-994c-ba882c8558b6",
       status: "uploaded",
       media: {
-        "document-front": [
+        'document-front': [
           {
             "id": "40851916-3e86-45cd-b8ce-0e948a8a7751",
             "mimeType": "image/png",
@@ -32,7 +29,7 @@ describe('GET session with media in the correct context', () => {
             "context": "document-front"
           }
         ],
-        "document-back": [
+        'document-back': [
           {
             "id": "a6c90b4f-ddfc-49eb-89ad-05b7f1274f96",
             "mimeType": "image/png",
@@ -46,5 +43,6 @@ describe('GET session with media in the correct context', () => {
         ]
       }
     });
-  }, 30000)
+  }, 20000)
   });
+

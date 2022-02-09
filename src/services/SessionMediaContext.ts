@@ -37,7 +37,7 @@ export default class SessionMediaContext {
 
             const media = await SessionMediaContext.groupMediaByContextType(mediaDetails, mediaIdMap);
 
-            // Non-null assertion operator to handle typescript possible undefined message.
+            // Non-null assertion operator(!), to handle typescript possible undefined message.
             media['document-front'].sort((documentA, documentB) =>
                 mediaIdMap.get(documentB.id)!.probability - mediaIdMap.get(documentA.id)!.probability );
 
@@ -50,8 +50,7 @@ export default class SessionMediaContext {
 
             return this.callback(this.res, null, data);
         } catch (err: any) {
-            console.error("API error message: ", err.response.data);
-
+            console.error('Server error', err);
             this.callback(this.res, {
                 status: err.response.statusCode,
                 message: err.response.data
@@ -93,7 +92,7 @@ export default class SessionMediaContext {
     /**
      * @Desc: To map each mediaId with it's corresponding context and probability.
      * @param mediaContextArr : Array - a response array from calling media context end-point.
-     * @returns mediaIdMap : an object containing mediaIds(as key) mapped with context and probability as values.
+     * @returns mediaIdMap : a Map containing mediaIds(as key) with value context and probability.
      */
     private async mapMediaIdWithContextAndProbability(mediaContextArr: MediaContext[]) {
         const mediaIdMap: Map<string, ProbabilityContext> = new Map();
