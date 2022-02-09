@@ -22,7 +22,8 @@ export default class SessionMediaContext {
     }
 
     /**
-     * @returns Proper API response which contains response code and response data objects respectively:
+     * @returns Proper API response which contains response code and response data objects respectively.
+     * If error, handles error appropriately as well.
      */
     public async sessionMediaContext() {
 
@@ -60,7 +61,7 @@ export default class SessionMediaContext {
     /**
      * @Desc: To to group each media with respective context.
      * @param mediaDetailArr : Array - a response array from calling session media end-point.
-     * @param mediaIdMap : Object - an object containing mediaIds(as key) mapped with context and probability as values.
+     * @param mediaIdMap : Map - a map containing mediaIds(as key) mapped with context and probability as values.
      * @returns contextMediaMap, mediaDetails: object with context mapped to media.
      */
     private static async groupMediaByContextType(mediaDetailArr: MediaDetails[], mediaIdMap: Map<string, ProbabilityContext>) {
