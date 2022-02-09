@@ -43,6 +43,6 @@ describe('GET session with media in the correct context', () => {
         ]
       }
     });
-  }, 20000)
+  }, 10000)
   });
 
