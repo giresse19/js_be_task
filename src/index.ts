@@ -7,11 +7,6 @@ import {apiResponse, noResource} from './middlewares/apiResponse';
 
 const app = express();
 
-app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-    apiResponse
-    next();
-});
-
 app.get('/api/sessions/:sessionId/media-context', (req: express.Request, res: express.Response) => {
     const sessionMediaContext = new SessionMediaContext(res, req.params.sessionId, apiResponse)
     return sessionMediaContext.sessionMediaContext();

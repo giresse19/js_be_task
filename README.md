@@ -126,7 +126,7 @@ default packaged NPM
 
 ### Installation
 
-1. If you prefer docker installation and have docker installed, just run:
+1. If you prefer docker installation and have docker installed, just run below command to start up:
 
 ```sh
  docker build . -t api-service
